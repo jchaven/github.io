@@ -1,0 +1,229 @@
+IT Department Cacti/MRTG monitoring site
+========================================
+1:36 PM 9/16/2017
+
+
+Install Ubuntu Server OS
+------------------------
+1. Update UBUNTU-1604-BASE VM and copy to new VM "CACTI1"
+2. Edit network interfaces file for new IP
+.2.1. Backup and edit interfaces file
+-----------------------------------------------------------
+sudo cp /etc/network/interfaces /etc/network/interfaces.jch
+sudo vi /etc/network/interfaces
+-----------------------------------------------------------
+.2.2. Copy and paste code
+-----------------------------------------------------------
+# SET STATIC IP - JCH
+auto ens160
+iface ens160 inet static
+address 10.100.100.40
+netmask 255.255.255.0
+gateway 10.100.100.1
+dns-nameservers 221.21.21.3
+-----------------------------------------------------------
+3. Change hostname to "CACTI1" name (edit both files): 
+-----------------------------------------------------------
+sudo cp /etc/hostname /etc/hostname.jch
+sudo vi /etc/hostname
+sudo cp /etc/hosts /etc/hosts.jch
+sudo vi /etc/hosts
+-----------------------------------------------------------
+4. Reboot
+Access the server using the new IP address
+
+
+Install LAMP Stack
+------------------
+Install Apache
+~~~~~~~~~~~~~~
+.1. Install Apache from repository
+-----------------------------------------------------------
+sudo apt-get install apache2
+-----------------------------------------------------------
+.2. Enable and start Apache
+-----------------------------------------------------------
+sudo systemctl enable apache2
+sudo systemctl start apache2
+sudo systemctl status apache2
+-----------------------------------------------------------
+.3. Test Apache by browsing to IP
+-----------------------------------------------------------
+http://10.100.100.40/
+-----------------------------------------------------------
+
+Install MySQL
+~~~~~~~~~~~~~
+.1. Install MySQL and MySQL tools from repository
+-----------------------------------------------------------
+sudo apt-get install mysql-server mysql-client
+-----------------------------------------------------------
+.2. Supply MySQL root user password 
+-----------------------------------------------------------
+mypassword
+-----------------------------------------------------------
+.3. Verify MySQL server is running
+-----------------------------------------------------------
+sudo systemctl status mysql
+-----------------------------------------------------------
+
+Install PHP (PHP7)
+~~~~~~~~~~~~~~~~~~
+.1. Install PHP from repository
+-----------------------------------------------------------
+sudo apt-get update 
+sudo apt-get install php7.0-mysql php7.0-curl php7.0-json php7.0-cgi php7.0 libapache2-mod-php7.0 -y
+-----------------------------------------------------------
+.2. Verify PHP installation
+-----------------------------------------------------------
+php -v
+-----------------------------------------------------------
+.3. Test PHP installation
+.3.1. Create a PHP file
+-----------------------------------------------------------
+sudo vi /var/www/html/phpinfo.php
+-----------------------------------------------------------
+.3.2. Add the following lines
+-----------------------------------------------------------
+<?php
+phpinfo();
+?>
+-----------------------------------------------------------
+.3.3. Browse site
+-----------------------------------------------------------
+http://10.100.100.40/phpinfo.php
+-----------------------------------------------------------
+
+
+Install SNMP and RRD Tool (MRTG)
+--------------------------------
+.1. Install SNMP and RRDTool from repository
+-----------------------------------------------------------
+sudo apt-get install snmp snmpd rrdtool -y
+-----------------------------------------------------------
+.2. Install Cacti and Spine from repository
+-----------------------------------------------------------
+sudo apt-get install cacti cacti-spine -y
+-----------------------------------------------------------
+.3. Supply a Cacti Admin password
+-----------------------------------------------------------
+passwordmy
+-----------------------------------------------------------
+.4. Restart Services
+-----------------------------------------------------------
+sudo systemctl restart apache2.service
+sudo systemctl restart mysql.service
+sudo systemctl restart snmpd.service
+-----------------------------------------------------------
+.5. Browse site
+-----------------------------------------------------------
+http://10.100.100.40/cacti
+-----------------------------------------------------------
+.6. The installation wizard will start. Change default password to match Cacti admin DB password 
+-----------------------------------------------------------
+Database User: cacti
+Database Hostname: localhost
+Database: cacti
+Server Operating System Type: unix
+Default Username/Password: admin/admin
+-----------------------------------------------------------
+
+
+NOTE: After logging in the Cacti version will display: Version 0.8.8f
+-----------------------------------------------------------
+administrator@CACTI1:~$ sudo apt-get update
+[sudo] password for administrator:
+Hit:1 http://us.archive.ubuntu.com/ubuntu xenial InRelease
+Get:2 http://security.ubuntu.com/ubuntu xenial-security InRelease [102 kB]
+Get:3 http://us.archive.ubuntu.com/ubuntu xenial-updates InRelease [102 kB]
+Get:4 http://us.archive.ubuntu.com/ubuntu xenial-backports InRelease [102 kB]
+Fetched 306 kB in 0s (588 kB/s)
+Reading package lists... Done
+administrator@CACTI1:~$ sudo apt-get install cacti cacti-spine -y
+Reading package lists... Done
+Building dependency tree
+Reading state information... Done
+cacti is already the newest version (0.8.8f+ds1-4ubuntu4.16.04.2).
+cacti-spine is already the newest version (0.8.8b-1ubuntu1.1).
+0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+administrator@CACTI1:~$ sudo apt-get upgrade cacti cacti-spine -y
+Reading package lists... Done
+Building dependency tree
+Reading state information... Done
+cacti is already the newest version (0.8.8f+ds1-4ubuntu4.16.04.2).
+cacti-spine is already the newest version (0.8.8b-1ubuntu1.1).
+Calculating upgrade... Done
+0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+administrator@CACTI1:~$
+-----------------------------------------------------------
+
+
+Upgrade Cacti to latest version
+-------------------------------
+
+1. Download Cacti from cacti.net
+
+.2. Extract new version to Cacti folder renaming old version
+-----------------------------------------------------------
+cd /usr/share/cacti
+sudo mv site site.old
+sudo mv resource resource.old
+sudo wget http://www.cacti.net/downloads/cacti-1.1.23.tar.gz
+sudo tar xvzf cacti-1.1.23.tar.gz
+sudo ln -s cacti-1.1.23 site
+sudo mv site/resource/ .
+sudo ln -s resource/ site/
+
+sudo nano site/include/config.php
+-- update user/pw
+-----------------------------------------------------------
+.3. Install missing PHP modules and dependencies
+-----------------------------------------------------------
+sudo apt-get install php-ldap php-gd php-gmp php-posix php-mbstring
+-----------------------------------------------------------
+.4. Add missing timezone tables to the "mysql" database
+-----------------------------------------------------------
+administrator@CACTI1:/etc/mysql$ mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root -p mysql
+Enter password:
+Warning: Unable to load '/usr/share/zoneinfo/iso3166.tab' as time zone. Skipping it.
+Warning: Unable to load '/usr/share/zoneinfo/leap-seconds.list' as time zone. Skipping it.
+Warning: Unable to load '/usr/share/zoneinfo/zone.tab' as time zone. Skipping it.
+Warning: Unable to load '/usr/share/zoneinfo/zone1970.tab' as time zone. Skipping it.
+administrator@CACTI1:/etc/mysql$ 
+-----------------------------------------------------------
+.5. Log into MySQL and execute:
+-----------------------------------------------------------
+GRANT ALL PRIVILEGES ON mysql.* TO 'cacti'@'localhost' WITH GRANT OPTION;
+-----------------------------------------------------------
+.6. run Cacti repair utilities
+-----------------------------------------------------------
+cd /usr/share/cacti/cli
+php repair_database.php --force
+php upgrade_database.php
+-----------------------------------------------------------
+.7. Update MySQL config
+-----------------------------------------------------------
+sudo nano /etc/mysql/my.cnf
+-----------------------------------------------------------
+.7.1 copy
+-----------------------------------------------------------
+[mysqld]
+max_heap_table_size = 50331648
+tmp_table_size = 67108864
+join_buffer_size = 67108864
+innodb_buffer_pool_size = 249561088
+innodb_doublewrite = OFF
+innodb_flush_log_at_timeout = 3
+innodb_read_io_threads = 32
+innodb_write_io_threads = 16
+-----------------------------------------------------------
+.7.2 restart MySQL
+-----------------------------------------------------------
+sudo systemctl restart mysql.service
+-----------------------------------------------------------
+.8. Restart Services
+-----------------------------------------------------------
+sudo systemctl restart apache2.service
+sudo systemctl restart mysql.service
+sudo systemctl restart snmpd.service
+-----------------------------------------------------------
