@@ -1,0 +1,74 @@
+<section id="logo">
+    <div class="container">
+        <a class="logo" href="#start" title="CharlesHaven">
+            <img class="logo" src="/jch/images/avatar.png" alt="Charles Haven">
+        </a>
+    </div>
+</section>
+
+
+
+Open Source
+
+
+Icons
+
+https://www.flaticon.com/authors/flat_circular/flat/
+
+Admin icon - icon_admin.png
+<div>Icons made by <a href="https://www.flaticon.com/authors/freepik" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
+
+About - icon_robot.png
+Web Development - icon_html.png
+
+
+icon_report.png
+
+
+404
+
+
+
+
+------------------------------------------------------------------------------------
+
+
+    <script src="https://smtpjs.com/v3/smtp.js"></script>
+
+    <script type="text/javascript"> 
+    function sendEmail() { 
+        Email.send({
+            Host : "mail.smtp2go.com",
+            Username : "jchaven.me",
+            Password : "e3fjhDIWcKSI07kBYJrzC0VLW",
+            To : 'jchaven@hotmail.com',
+            From : "jchaven@gmail.com",
+            Subject : "TEST - This is the subject",
+            Body : "And this is the body"
+        }).then(
+        message => alert(message)
+        );
+    }
+    </script>
+
+Encrypted with secure token:
+30c313ce-0e96-40ae-a61b-6e693e11eacc
+
+    <script src="https://smtpjs.com/v3/smtp.js"></script>
+
+    <script type="text/javascript"> 
+    function sendEmail() { 
+        Email.send({
+            SecureToken : "30c313ce-0e96-40ae-a61b-6e693e11eacc",
+            To : 'jchaven@hotmail.com',
+            From : "jchaven@gmail.com",
+            Subject : "TEST - This is the subject",
+            Body : "And this is the body"
+        }).then(
+        message => alert(message)
+        );
+    }
+    </script>
+
+------------------------------------------------------------------------------------
+30c313ce-0e96-40ae-a61b-6e693e11eacc
